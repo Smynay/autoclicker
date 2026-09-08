@@ -67,7 +67,7 @@ EOF
 
 # Подпись: стабильный сертификат (certs/) защищает Accessibility-грант от слёта при пересборке.
 # iCloud-синхронизируемая папка налепляет xattr'ы, ломающие codesign — подписываем и верифицируем в tmp
-STAGE=$(mktemp -d /var/folders/79/jcd45b5x7jj82bf0fl2ltx9h0000gn/T/opencode/acbuild.XXXX)
+STAGE=$(mktemp -d "${TMPDIR:-/tmp}/acbuild.XXXX")
 if [ -f "$ROOT/certs/autoclicker-cert.pem" ] && security find-certificate -c "AutoClicker Self-Signed" >/dev/null 2>&1; then
   SIGN_IDENTITY="AutoClicker Self-Signed"
 else
