@@ -43,6 +43,16 @@ open build/AutoClicker.app
 
 The script compiles `src/AutoclickerApp.swift` + `src/IconGen.swift`, generates the status-bar images and the full `.icns` icon set (16×16 … 512×512 @2x), signs the bundle so the Accessibility grant survives rebuilds, and (with `release` mode) drops a zip into `build/dist/`.
 
+## Releases & CI
+
+Tagging a version (`git tag v1.2.0 && git push --tags v1.2.0`) triggers the GitHub Actions pipeline that builds the app on a macOS runner and attaches the zip to the release automatically — no local build needed.
+
+To make CI-signed builds keep their Accessibility grant across updates, define repo secrets (Settings → Secrets):
+- `SIGNING_CERT_P12` — base64 of an identity exported as PKCS#12 (see below)
+- `SIGNING_CERT_PASSWORD` — its passphrase
+
+Without secrets the CI build falls back to ad-hoc signing. Whether you build locally or in a pipeline, the grant is per *machine*: every new user machine enables the checkbox once — that is normal macOS behavior; the stable identity only protects against re-granting after updates.
+
 ### Stable signing (optional but recommended)
 
 The Accessibility grant is bound to the code signature; with ad-hoc signing every rebuild silently invalidates it. To keep the identity stable across rebuilds, generate a self-signed code-signing certificate **once**:

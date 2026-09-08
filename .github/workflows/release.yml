@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import stable signing identity (optional)
+        if: env.SIGNING_CERT_P12 != ''
+        env:
+          SIGNING_CERT_P12: ${{ secrets.SIGNING_CERT_P12 }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        run: |
+          echo "$SIGNING_CERT_P12" | base64 --decode > /tmp/signing.p12
+          security import /tmp/signing.p12 -k ~/Library/Keychains/login.keychain-db -P "$SIGNING_CERT_PASSWORD" -A
+          security find-identity -v -p codesigning
+
+      - name: Build
+        run: ./build.sh "${GITHUB_REF_NAME#v}" release
+
+      - name: Attach artifact to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARTIFACT=$(ls build/dist/*.zip | head -1)
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ARTIFACT" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$ARTIFACT" --generate-notes --title "$GITHUB_REF_NAME"
+          fi
