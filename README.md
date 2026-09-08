@@ -1,11 +1,24 @@
-# AutoClicker for macOS
+# 🖱️ AutoClicker for macOS
 
-A tiny menu-bar auto clicker written in pure Swift — no dependencies, no EvaluateScript, no frameworks.
+[![Release](https://img.shields.io/github/v/release/Smynay/autoclicker)](https://github.com/Smynay/autoclicker/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%2012%2B-black)]()
+[![Language](https://img.shields.io/badge/language-Swift-orange)]()
+
+**macOS menu-bar auto clicker** — pure Swift, zero dependencies. Toggle clicks with a global hotkey anywhere, including fullscreen apps and Chromium browsers.
 
 ```
 Raw CPS mode 1–50 clicks/s   |   Spread mode (random intervals)
 ⌥⌘K start/stop              |   Icon lives in the menu bar
 ```
+
+## Download (instant, no build needed)
+
+Grab the zip from the latest release, unzip, run `AutoClicker.app`:
+
+**[Download AutoClicker — latest release](https://github.com/Smynay/autoclicker/releases/latest)**
+
+After the first launch, macOS will ask for *Accessibility* permission once — the app will open the correct System Settings pane automatically.
 
 ## Features
 
@@ -13,7 +26,7 @@ Raw CPS mode 1–50 clicks/s   |   Spread mode (random intervals)
 - **Clicks happen at the current cursor position** — park the mouse over the target and go
 - **1 / 5 / 10 / 20 / 50 clicks per second** — switchable via the 🖱 menu bar icon
 - **Spread mode** — random jitter (0.5×–1.5× of the base interval) between clicks for a human-like cadence
-- **Custom barrier-free cursor icon** (menu bar template + .icns) — drawn 100% in code with `AppKit`
+- **Custom clickable-cursor icon** — menu-bar template + cam-included `.icns`, both drawn 100% in code with `AppKit`
 - Fully localized in English; lives in the menu bar (`LSUIElement`) and never appears in the Dock
 
 ## Requirements
