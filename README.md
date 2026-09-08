@@ -41,7 +41,21 @@ After the first launch, macOS will ask for *Accessibility* permission once — t
 open build/AutoClicker.app
 ```
 
-The script compiles `src/AutoclickerApp.swift` + `src/IconGen.swift`, generates the status-bar images and the full `.icns` icon set (16×16 … 512×512 @2x), signs the bundle with a stable ad-hoc identity (`local.autoclicker.app`) via a scratch dir with stripped `xattr`s.
+The script compiles `src/AutoclickerApp.swift` + `src/IconGen.swift`, generates the status-bar images and the full `.icns` icon set (16×16 … 512×512 @2x), signs the bundle so the Accessibility grant survives rebuilds, and (with `release` mode) drops a zip into `build/dist/`.
+
+### Stable signing (optional but recommended)
+
+The Accessibility grant is bound to the code signature; with ad-hoc signing every rebuild silently invalidates it. To keep the identity stable across rebuilds, generate a self-signed code-signing certificate **once**:
+
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout certs/autoclicker-key.pem -out certs/autoclicker-cert.pem \
+  -days 3650 -nodes -subj "/CN=AutoClicker Self-Signed/O=AutoClicker/OU=Personal" \
+  -addext "keyUsage=digitalSignature,keyEncipherment" -addext "extendedKeyUsage=codeSigning"
+openssl pkcs12 -export -out /tmp/ac.p12 -inkey certs/autoclicker-key.pem -in certs/autoclicker-cert.pem -passout pass:ac
+security import /tmp/ac.p12 -k ~/Library/Keychains/login.keychain-db -P "ac" -A
+```
+
+`build.sh` auto-detects the `AutoClicker Self-Signed` identity in the login keychain and uses it; otherwise falls back to ad-hoc signing.
 
 ## First run: grant Accessibility
 

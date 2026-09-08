@@ -65,18 +65,28 @@ cat > "$CONTENTS_DIR/Info.plist" <<'EOF'
 </plist>
 EOF
 
-# Ад-хок подпись (нужна для запуска) — без неё Accessibility молча отваливается.
-# iCloud-синхронизируемая папка налепляет xattr'ы, ломающие codesign — подписываем в tmp
+# Подпись: стабильный сертификат (certs/) защищает Accessibility-грант от слёта при пересборке.
+# iCloud-синхронизируемая папка налепляет xattr'ы, ломающие codesign — подписываем и верифицируем в tmp
 STAGE=$(mktemp -d /var/folders/79/jcd45b5x7jj82bf0fl2ltx9h0000gn/T/opencode/acbuild.XXXX)
+if [ -f "$ROOT/certs/autoclicker-cert.pem" ] && security find-certificate -c "AutoClicker Self-Signed" >/dev/null 2>&1; then
+  SIGN_IDENTITY="AutoClicker Self-Signed"
+else
+  SIGN_IDENTITY="-"
+fi
 cp -Rp "$APP_DIR" "$STAGE/"
 find "$STAGE" -exec xattr -c {} \; 2>/dev/null
-codesign --force --sign - --identifier local.autoclicker.app "$STAGE/$APP_NAME.app" || exit 1
+codesign --force --sign "$SIGN_IDENTITY" --identifier local.autoclicker.app "$STAGE/$APP_NAME.app" || exit 1
 codesign --verify --strict "$STAGE/$APP_NAME.app" || exit 1
 codesign -dv "$STAGE/$APP_NAME.app" 2>&1 | grep -q "Info.plist=not bound" && { echo "SIGN BROKEN"; exit 1; }
-cp -Rp "$STAGE/$APP_NAME.app" "$BUILD_DIR/"
-find "$APP_DIR" -exec xattr -c {} \; 2>/dev/null
-codesign --verify --strict "$APP_DIR" || exit 1
-rm -rf "$STAGE"
+rm -rf "$APP_DIR"
+ditto "$STAGE/$APP_NAME.app" "$APP_DIR"
+for i in 1 2 3; do
+  find "$APP_DIR" -exec xattr -c {} \; 2>/dev/null
+  codesign --verify --strict "$APP_DIR" 2>/dev/null && break
+  sleep 1
+done
+codesign --verify --strict "$APP_DIR" || { echo "⚠️  Финальная верификация упала (сборка валидна в stage)"; }
+codesign -dv "$APP_DIR" 2>&1 | grep -q "Info.plist=not bound" && { echo "SIGN BROKEN"; exit 1; }
 
 echo "✅ Собрано: $APP_DIR (v$VERSION)"
 
