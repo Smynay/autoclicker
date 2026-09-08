@@ -1,0 +1,12 @@
+<!doctype html><html><body style="font-size:60px">
+<button id="s" style="font-size:60px;padding:40px">Counter app</button>
+<div id="out" style="font-family:monospace"></div>
+<script>
+let n = 0, t0 = null;
+document.addEventListener('mousedown', e => { if (!t0) t0 = Date.now(); n++; });
+setInterval(() => {
+  const el = t0 ? (n / Math.max(1, (Date.now() - t0) / 1000)).toFixed(1) : '0';
+  document.getElementById('out').textContent = `clicks=${n} cps=${el} t=${t0 ? Math.round((Date.now()-t0)/1000) : 0}s cursor=?`;
+}, 200);
+</script>
+</body></html>
