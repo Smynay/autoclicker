@@ -12,6 +12,10 @@ Raw CPS mode 1–50 clicks/s   |   Spread mode (random intervals)
 ⌥⌘K start/stop              |   Icon lives in the menu bar
 ```
 
+<p align="center">
+  <img src="docs/menu.png" alt="AutoClicker menu-bar popup: Run, click speed selector, spread mode, Quit" width="380" />
+</p>
+
 ## Download (instant, no build needed)
 
 Grab the zip from the latest release, unzip, run `AutoClicker.app`:
