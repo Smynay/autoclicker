@@ -1,8 +1,11 @@
 #!/bin/bash
+#!/usr/bin/env bash
 # Сборка меню-бар автокликера в .app бандл
 set -euo pipefail
 
 APP_NAME="AutoClicker"
+VERSION="${1:-1.0.0}"
+RELEASE_MODE="${2:-local}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$ROOT/build"
 APP_DIR="$BUILD_DIR/$APP_NAME.app"
@@ -47,7 +50,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<'EOF'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>$VERSION</string>
     <key>CFBundleIconFile</key>
     <string>AutoClicker</string>
     <key>CFBundleIconName</key>
@@ -75,5 +78,13 @@ find "$APP_DIR" -exec xattr -c {} \; 2>/dev/null
 codesign --verify --strict "$APP_DIR" || exit 1
 rm -rf "$STAGE"
 
-echo "✅ Собрано: $APP_DIR"
-echo "Запуск: open '$APP_DIR'"
+echo "✅ Собрано: $APP_DIR (v$VERSION)"
+
+if [ "$RELEASE_MODE" = "release" ]; then
+  ZIP_NAME="${APP_NAME}-${VERSION}.zip"
+  DIST_DIR="$BUILD_DIR/dist"
+  mkdir -p "$DIST_DIR"
+  rm -f "$DIST_DIR/$ZIP_NAME"
+  (cd "$BUILD_DIR" && zip -qr "$DIST_DIR/$ZIP_NAME" "$APP_NAME.app" -x "*.DS_Store")
+  echo "✅ Релиз-артефакт: $DIST_DIR/$ZIP_NAME"
+fi
